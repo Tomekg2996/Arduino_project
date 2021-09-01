@@ -6,6 +6,8 @@ const uint64_t pipeOut = 0xE8E8F0F0E1LL; //IMPORTANT: The same as in the receive
 
 RF24 radio(9, 10); // select  CSN  pin
 
+/**************************************************/
+
 // The sizeof this struct should not exceed 32 bytes
 // This gives us up to 32 8 bits channals
 struct Data {
@@ -15,21 +17,23 @@ struct Data {
 
 Data data;
 
+/**************************************************/
+
 void resetData() 
 {
   //This are the start values of each channal
   // Throttle is 0 in order to stop the motors
   //127 is the middle value of the 10ADC.
-    
   data.AxisX = 127;
   data.AxisY = 127;
-
 }
+
+/**************************************************/
 
 void setup()
 {
-  //Start everything up
   Serial.begin(9600);
+  //Setup and configutation RF radio
   radio.begin();
   radio.setAutoAck(false);
   radio.setDataRate(RF24_250KBPS);
@@ -51,12 +55,15 @@ int mapJoystickValues(int val, int lower, int middle, int upper, bool reverse)
   return ( reverse ? 255 - val : val );
 }
 
+/**************************************************/
+
 void loop()
 {
   // The calibration numbers used here should be measured 
   // for your joysticks till they send the correct values.
   data.AxisX = mapJoystickValues( analogRead(A2), 0, 512, 1024, true );
   data.AxisY = mapJoystickValues( analogRead(A3),  0, 512, 1024, true );
-
+  //send data
   radio.write(&data, sizeof(Data));
 }
+

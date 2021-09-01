@@ -3,17 +3,21 @@
 #include "nRF24L01.h"
 #include "RF24.h"
 
-
 #define PWM_FORWARD 5
 #define PWM_BACKWARD 6
 
 //Remember that this code is the same as in the transmitter
 const uint64_t pipeIn = 0xE8E8F0F0E1LL; 
 
+//Create Servo object
 Servo control_servo;
+//Set up nRF24L01 radio on SPI bus plus pin 9, 10
 RF24 radio(9, 10);
 
+//definition of variable 
 int direct, motor_speed, control_servo_value;
+
+/**************************************************/
 
  //We define each byte of data input, in this case just 6 channels
 struct Data {
@@ -22,6 +26,8 @@ struct Data {
 };
 
 Data data;
+
+/**************************************************/
 
 void resetData(){
 //We define the inicial value of each data input
@@ -33,17 +39,22 @@ void resetData(){
 /**************************************************/
 
 void setup(){
-  Serial.begin(250000); //Set the speed to 9600 bauds if you want.
-  //You should always have the same speed selected in the serial monitor
+  Serial.begin(9600); 	//Set the speed to 9600 bauds if you want.
+  			//You should always have the same speed selected in the serial monitor
+  //Setup and configutation RF radio
   resetData();
   radio.begin();
   radio.setAutoAck(false);
   radio.setDataRate(RF24_250KBPS);
   radio.openReadingPipe(1,pipeIn);
+  
   //start the radio comunication
   radio.startListening();
-
+  
+  //attaches the servo on pin A0
   control_servo.attach(A0);
+  
+  //set pins as output
   pinMode(PWM_FORWARD, OUTPUT);
   pinMode(PWM_BACKWARD, OUTPUT);
 }
@@ -52,6 +63,7 @@ void setup(){
 
 unsigned long lastRecvTime = 0;
 
+//function reading receive data
 void recvData(){
   while ( radio.available() ) {
     radio.read(&data, sizeof(Data));
@@ -88,6 +100,8 @@ void loop(){
   }
 }
 
+/**************************************************/
+
 void forward(int speed){
   analogWrite(PWM_FORWARD, speed);
   analogWrite(PWM_BACKWARD, 0);
@@ -102,3 +116,4 @@ void stop_motor(){
   analogWrite(PWM_BACKWARD,0);
   analogWrite(PWM_FORWARD,0);
 }
+
